@@ -2428,10 +2428,9 @@ BigInt ChpSim::funcEval (Function *f, int nargs, void **vargs)
 
     if (TypeFactory::isStructure (vx->t) || vx->t->arrayInfo()) {
       expr_multires *x2;
-      int arrsz = vx->t->arrayInfo() ? vx->t->arrayInfo()->size() : 1;
       Data *xd = dynamic_cast<Data *> (vx->t->BaseType());
       NEW (x2, expr_multires);
-      new (x2) expr_multires (xd, arrsz);
+      new (x2) expr_multires (xd, vx->t->arrayInfo());
       b->v = x2;
       if (!xd) {
 	x2->setAllWidths (TypeFactory::bitWidth (vx->t));
@@ -3055,7 +3054,6 @@ BigInt ChpSim::exprEval (Expr *e)
     {
       int nargs;
       void **args;
-      
       construct_fn_args (e, &nargs, &args);
       l = funcEval ((Function *)e->u.fn.s, nargs, args);
       free_fn_args (e, &nargs, &args);
@@ -3150,9 +3148,8 @@ expr_multires ChpSim::funcStruct (Function *f, int nargs, void **vargs)
     b = hash_add (lstate, vx->getName());
     if (TypeFactory::isStructure (vx->t) || vx->t->arrayInfo()) {
       expr_multires *x2;
-      int arrsz = vx->t->arrayInfo() ? vx->t->arrayInfo()->size() : 1;
       Data *xd = dynamic_cast<Data *> (vx->t->BaseType());
-      x2 = new expr_multires (xd, arrsz);
+      x2 = new expr_multires (xd, vx->t->arrayInfo());
       b->v = x2;
       if (!xd) {
 	x2->setAllWidths (TypeFactory::bitWidth (vx->t));
@@ -3248,11 +3245,10 @@ void ChpSim::construct_fn_args (Expr *e, int *nargs, void ***args)
     MALLOC (*args, void *, *nargs);
   }
   for (i=0; i < *nargs; i++) {
-    if (TypeFactory::isStructure (fx->getPortType (i))) {
-      (*args)[i] = new expr_multires;
-    }
-    else if (fx->getPortType (i)->arrayInfo()) {
-      (*args)[i] = new expr_multires;
+    if (TypeFactory::isStructure (fx->getPortType (i)) ||
+	fx->getPortType (i)->arrayInfo()) {
+      Data *d = dynamic_cast <Data *> (fx->getPortType(i)->BaseType());
+      (*args)[i] = new expr_multires (d, fx->getPortType(i)->arrayInfo());
     }
     else {
       (*args)[i] = new BigInt;
@@ -3310,7 +3306,7 @@ expr_multires ChpSim::exprArray (Expr *e)
     {
       struct chpsimderef *d = (struct chpsimderef *)e->u.e.l;
       Assert (d->range, "Hmm");
-      expr_multires ret(d->d, d->range->size());
+      expr_multires ret(d->d, d->range);
       if (d->d) {
 	int off = 0;
 	int ti, tb;
@@ -3389,6 +3385,25 @@ expr_multires ChpSim::exprStruct (Expr *e)
       Assert (b, "what?");
       //printf ("looked up state: %s\n", ((ActId *)e->u.e.l)->getName());
       res = *((expr_multires *)b->v);
+
+      if (((ActId *)e->u.e.l)->arrayInfo()) {
+	Array *deref = ((ActId *)e->u.e.l)->arrayInfo();
+	Array *vals = NULL;
+
+	// evaluate indices!
+	for (int i=0; i < deref->nDims(); i++) {
+	  BigInt tmp = exprEval (deref->getDeref (i));
+	  int idx = tmp.getVal (0);
+	  if (!vals) {
+	    vals = new Array (idx);
+	  }
+	  else {
+	    vals->Concat (new Array (idx));
+	  }
+	}
+	res = res.getDeref  (vals);
+	delete vals;
+      }
       if (((ActId *)e->u.e.l)->Rest()) {
 	/*
 	  ok, now re-construct a new expr_multires as a set of

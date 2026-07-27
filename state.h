@@ -28,11 +28,11 @@ class ActSimCore;
 
 class expr_multires {
  public:
-  expr_multires(Data *d = NULL, int obj_count = 1) {
+  expr_multires(Data *d = NULL, Array *a = NULL) {
     _d = NULL;
     nvals = 0;
     v = NULL;
-    _init (d, obj_count);
+    _init (d, a);
   }
   ~expr_multires() {
     _delete_objects ();
@@ -40,6 +40,7 @@ class expr_multires {
 
   void setSingle (BigInt &x) {
     _d = NULL;
+    _arr = NULL;
     if (nvals != 1) {
       _delete_objects ();
       nvals = 1;
@@ -51,6 +52,7 @@ class expr_multires {
 
   void setSingle (unsigned long val) {
     _d = NULL;
+    _arr = NULL;
     if (nvals != 1) {
       _delete_objects ();
       nvals = 1;
@@ -67,6 +69,7 @@ class expr_multires {
     m.nvals = 0;
     m.v = NULL;
     _d = m._d;
+    _arr = m._arr;
   }
   
   expr_multires (expr_multires &m) {
@@ -79,6 +82,7 @@ class expr_multires {
       }
     }
     _d = m._d;
+    _arr = m._arr;
   }
 
   void Print (FILE *fp);
@@ -91,6 +95,7 @@ class expr_multires {
     nvals = m.nvals;
     m.nvals = 0;
     _d = m._d;
+    _arr = m._arr;
     return *this;
   }
   
@@ -111,6 +116,7 @@ class expr_multires {
       }
     }
     _d = m._d;
+    _arr = m._arr;
     return *this;
   }
 
@@ -127,9 +133,14 @@ class expr_multires {
   // indexed write to a int/bool array
   void setField (int idx, BigInt *v);
 
-  BigInt *getField (ActId *x);
+
+  // return structure... the ".x" component
   expr_multires getStruct (ActId *x);
+  expr_multires getDeref (Array *deref);
+  
+  BigInt *getField (ActId *x);
   BigInt *getField (int off, ActId *x);
+
 
   void setAllWidths (int width);
 
@@ -153,9 +164,10 @@ private:
   }
   int _count (Data *d);
   void _init_helper (Data *d, int *pos);
-  void _init (Data *d, int obj_count);
+  void _init (Data *d, Array *a);
   void _fill_helper (Data *d, ActSimCore *sc, int *pos, int *oi, int *ob);
   Data *_d;
+  Array *_arr;
 };
 
 struct extra_state_alloc {

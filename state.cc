@@ -229,10 +229,18 @@ void expr_multires::_init_helper (Data *d, int *pos)
   }
 }
 
-void expr_multires::_init (Data *d, int obj_count)
+void expr_multires::_init (Data *d, Array *a)
 {
+  int obj_count;
+  if (a) {
+    obj_count = a->size ();
+  }
+  else {
+    obj_count = 1;
+  }
   if (!d && obj_count == 1) return;
   _d = d;
+  _arr = a;
   if (d) {
     nvals = _count (d)*obj_count;
   }
@@ -327,6 +335,22 @@ BigInt *expr_multires::getField (int off, ActId *x)
   }
   Assert (0 <= off && off < nvals, "Hmm");
   return &v[off];
+}
+
+expr_multires expr_multires::getDeref (Array *deref)
+{
+  Assert (_arr, "What?");
+  Assert (_d, "What?!");
+  int off = _arr->Offset (deref);
+
+  expr_multires res(_d);
+  int count = _count (_d);
+  off *= count;
+
+  for (int i=0; i < count; i++) {
+    res.v[i] = v[off + i];
+  }
+  return res;
 }
 
 void expr_multires::setField (ActId *x, BigInt *val)

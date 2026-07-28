@@ -3376,6 +3376,20 @@ expr_multires ChpSim::exprStruct (Expr *e)
     res = varStruct ((struct chpsimderef *)e->u.e.l);
     break;
 
+  case E_QUERY:
+    {
+      /* structures can be in query expressions due to dynamic->static
+	 conversion */
+      BigInt tmp = exprEval (e->u.e.l);
+      if (tmp.getVal(0) == 1) {
+	res = exprStruct (e->u.e.r->u.e.l);
+      }
+      else {
+	res = exprStruct (e->u.e.r->u.e.r);
+      }
+    }
+    break;
+
   case E_VAR:
     {
       Assert (!list_isempty (_statestk), "What?");

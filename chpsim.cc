@@ -2341,7 +2341,7 @@ void ChpSim::_run_chp (Function *f, act_chp_lang_t *c)
 
       if (xit->arrayInfo()) {
 	int *idx;
-	Array *a = c->u.assign.id->Tail()->arrayInfo();
+	Array *a = c->u.assign.id->arrayInfo();
 	Assert (a && a->isDeref(), "No array de-reference for ID?");
 	MALLOC (idx, int, xit->arrayInfo()->nDims());
 	for (int i=0; i < xit->arrayInfo()->nDims(); i++) {

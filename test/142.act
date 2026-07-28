@@ -11,6 +11,7 @@ function func (
     int idx;
 
     chp {
+        in_a[0].f := 0; in_a[1].f := 0;
         idx := 0;
         log ("0: ", input.a[0].f, " ", input.a[1].f);
         log ("1: ", int(input.a[0]), " ", int(input.a[1]));

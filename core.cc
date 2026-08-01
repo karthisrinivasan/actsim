@@ -1291,6 +1291,12 @@ void ActSimCore::_add_all_inst (Scope *sc)
       if (!as || vx->isPrimary (as->index())) {
 	if (as) {
 	  tmpid->setArray (as->toArray());
+	  if (as->curProc() != x) {
+	    x = as->curProc ();
+	    si = sp->getStateInfo (x);
+	    _curproc = x;
+	    _cursi = si;
+	  }
 	}
 
 	/*-- tmpid = name of the id --*/
@@ -2761,6 +2767,15 @@ void ActSimCore::_computeMultiDrivers (Process *p)
     Assert (px, "What?");
     if (!px->isExpanded()) continue;
     _computeMultiDrivers (px);
+    if (vx->t->isMixedArray()) {
+      Array *r = vx->t->arrayInfo();
+      while (r) {
+	px = dynamic_cast<Process *> (r->getArrayType()->BaseType());
+	Assert (px, "Hmm");
+	_computeMultiDrivers (px);
+	r = r->Next ();
+      }
+    }
   }
 
   // now walk through all local drivers and port drivers, constructing
@@ -2869,7 +2884,23 @@ void ActSimCore::_computeMultiDrivers (Process *p)
       else {
 	sz = 1;
       }
+
+      Arraystep *as = NULL;
+      if (vx->t->arrayInfo()) {
+	as = vx->t->arrayInfo()->stepper();
+      }
+      
       while (sz > 0) {
+	while (as && !as->isend() && !vx->isPrimary (as->index())) {
+	  as->step();
+	}
+	if (as) {
+	  Assert (!as->isend(), "What?");
+	  if (as->curProc() != px) {
+	    px = as->curProc ();
+	    subsi = sp->getStateInfo (px);
+	  }
+	}
 	sz--;
 	for (int j=0; j < A_LEN (subsi->bnl->ports); j++) {
 	  if (subsi->bnl->ports[j].omit) continue;
@@ -2961,6 +2992,12 @@ void ActSimCore::_computeMultiDrivers (Process *p)
 	    }
 	  }
 	}
+	if (as) {
+	  as->step();
+	}
+      }
+      if (as) {
+	delete as;
       }
     }
   }

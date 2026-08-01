@@ -1,0 +1,46 @@
+template<pint N | pint L>
+defproc mem(chan?(bool) rd; chan?(int) addr, din; chan!(int) dout)
+{
+  int x[N];
+  int a;
+  bool b;
+  chp {
+    *[ log ("hi, I am ", L);
+       rd?b;
+     [b-> log("here ", L); addr?a; dout!x[a]
+     []~b-> log("there ", L); addr?a; din?x[a]
+     ]]
+  }
+}
+
+defproc test()
+{
+  chan(bool) rd, rd2;
+  chan(int) addr, din, addr2, din2;
+  chan(int) dout, dout2;
+  mem<32,4> m[1];
+  m[0](rd, addr, din, dout);
+  mem<32,8> m[2..2];
+  m[2](rd2, addr2, din2, dout2);
+  int x, x2;
+
+  chp {
+     log("test mem");
+    (
+     rd!false,addr!0,din!5;
+     rd!true,addr!0,dout?x;
+     log("got ", x);
+     rd!false,addr!31,din!6;
+     rd!true,addr!1,dout?x;
+     log("got ", x)
+    ),
+    (
+     rd2!false,addr2!0,din2!5;
+     rd2!true,addr2!0,dout2?x2;
+     log("got ", x2);
+     rd2!false,addr2!31,din2!6;
+     rd2!true,addr2!1,dout2?x2;
+     log("got ", x2)
+    )
+   }
+}

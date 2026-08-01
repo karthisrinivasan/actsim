@@ -1,0 +1,23 @@
+[                   0] <>  test mem
+[                  10] <m[2]>  hi, I am 8
+[                  10] <m[0]>  hi, I am 4
+[                  30] <m[0]>  there 4
+[                  30] <m[2]>  there 8
+[                  60] <m[0]>  hi, I am 4
+[                  60] <m[2]>  hi, I am 8
+[                  80] <m[2]>  here 8
+[                  80] <m[0]>  here 4
+[                 100] <>  got 5
+[                 100] <>  got 5
+[                 110] <m[2]>  hi, I am 8
+[                 110] <m[0]>  hi, I am 4
+[                 130] <m[0]>  there 4
+[                 130] <m[2]>  there 8
+[                 160] <m[0]>  hi, I am 4
+[                 160] <m[2]>  hi, I am 8
+[                 180] <m[2]>  here 8
+[                 180] <m[0]>  here 4
+[                 200] <>  got 0
+[                 200] <>  got 0
+[                 210] <m[2]>  hi, I am 8
+[                 210] <m[0]>  hi, I am 4

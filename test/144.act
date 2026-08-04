@@ -1,0 +1,40 @@
+template<|pint V>
+defproc onebuf (chan?(int) L; chan!(int) R)
+{ 
+  int x;
+  chp {
+   *[ L?x; R!(x+V) ]
+  }
+}
+
+template<pint N>
+defproc bufs (chan?(int) L; chan!(int) R)
+{ 
+  { N > 0 : "What?" };
+  (i:N: onebuf<i> b[i..i];)
+  (i:N-1: b[i].R = b[i+1].L; )
+  b[0].L = L;
+  b[N-1].R = R;
+}
+
+defproc src(chan!(int) X)
+{
+  chp {
+    X!5; X!10
+  }
+}
+
+defproc sink(chan?(int) X)
+{
+  int x;
+  chp { 
+   *[ X?x; log ("got ", x) ]
+  }
+}
+
+defproc test()
+{
+  bufs<10> b;
+  src s(b.L);
+  sink t(b.R);
+}
